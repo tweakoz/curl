@@ -54,6 +54,7 @@
 #include "multiif.h"
 #include "progress.h"
 #include "content_encoding.h"
+#include "ws.h"
 
 /* The last 3 #include files should be in this order */
 #include "curl_printf.h"
@@ -1123,6 +1124,9 @@ CURLcode Curl_http(struct Curl_easy *data, bool *done)
   result = cookies(data, conn, headers);
   if(result)
     goto error;
+
+  if(!result && conn->handler->protocol&(CURLPROTO_WS|CURLPROTO_WSS))
+    result = Curl_ws_request(data, req);
 
   result = Curl_add_timecondition(data, headers);
   if(result)

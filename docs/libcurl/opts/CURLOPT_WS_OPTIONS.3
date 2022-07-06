@@ -22,53 +22,52 @@
 .\" *
 .\" **************************************************************************
 .\"
-.TH CURLOPT_CONNECT_ONLY 3 "19 Jun 2014" "libcurl 7.37.0" "curl_easy_setopt options"
+.TH CURLOPT_WS_OPTIONS 3 "10 Jun 2022" "libcurl 7.85.0" "curl_easy_setopt options"
 .SH NAME
-CURLOPT_CONNECT_ONLY \- stop when connected to target server
+CURLOPT_WS_OPTIONS \- WebSockets behavior options
 .SH SYNOPSIS
 .nf
 #include <curl/curl.h>
 
-CURLcode curl_easy_setopt(CURL *handle, CURLOPT_CONNECT_ONLY, long only);
+CURLcode curl_easy_setopt(CURL *handle, CURLOPT_WS_OPTIONS, long bitmask);
 .fi
 .SH DESCRIPTION
-Pass a long. If the parameter equals 1, it tells the library to perform all
-the required proxy authentication and connection setup, but no data transfer,
-and then return.
+Pass a long with a bitmask to tell libcurl about specific WebSockets
+behaviors.
 
-The option can be used to simply test a connection to a server, but is more
-useful when used with the \fICURLINFO_ACTIVESOCKET(3)\fP option to
-\fIcurl_easy_getinfo(3)\fP as the library can set up the connection and then
-the application can obtain the most recently used socket for special data
-transfers.
+To "detatch" a websockets connection and use the \fIcurl_ws_send(3)\fP and
+\fIcurl_ws_recv(3)\fP functions after the HTTP upgrade procedure, set the
+\fICURLOPT_CONNECT_ONLY(3)\fP option to 2L.
 
-Since 7.85.0, this option can be set to '2' and if HTTP or WebSockets are
-used, libcurl will do the request and read all response headers before handing
-over control to the application.
+Available bits in the bitmask
+.IP "CURLWS_RAW_MODE (1)"
+Deliver "raw" websockets traffic to the \fICURLOPT_WRITEFUNCTION(3)\fP
+callback.
 
-Transfers marked connect only will not reuse any existing connections and
-connections marked connect only will not be allowed to get reused.
+In raw mode, libcurl does not handle pings or any other frame for the
+application.
+.IP "CURLWS_COMPRESS_MODE (2)"
+Negotiate compression for this transfer. (NOT IMPLEMENTED YET)
+.IP "CURLWS_PINGOFF_MODE (4)"
+Disable automated ping/pong handling. (NOT IMPLEMENTED YET)
 .SH DEFAULT
 0
 .SH PROTOCOLS
-HTTP, SMTP, POP3 and IMAP
+WebSockets
 .SH EXAMPLE
 .nf
 CURL *curl = curl_easy_init();
 if(curl) {
-  CURLcode ret;
-  curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
-  curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L);
+  curl_easy_setopt(curl, CURLOPT_URL, "ws://example.com/");
+  /* use the stand alone API */
+  curl_easy_setopt(curl, CURLOPT_WS_OPTIONS, CURLWS_ALONE);
   ret = curl_easy_perform(curl);
-  if(ret == CURLE_OK) {
-    /* only connected! */
-  }
+  curl_easy_cleanup(curl);
 }
 .fi
 .SH AVAILABILITY
-Added in 7.15.2
+Added in 7.85.0
 .SH RETURN VALUE
 Returns CURLE_OK if the option is supported, and CURLE_UNKNOWN_OPTION if not.
 .SH "SEE ALSO"
-.BR CURLOPT_VERBOSE "(3), " CURLOPT_HTTPPROXYTUNNEL  "(3), "
-.BR curl_easy_recv "(3), " curl_easy_send "(3) "
+.BR curl_ws_recv "(3), " curl_ws_send "(3), "

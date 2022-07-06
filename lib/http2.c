@@ -1371,7 +1371,7 @@ CURLcode Curl_http2_request_upgrade(struct dynbuf *req,
                          NGHTTP2_CLEARTEXT_PROTO_VERSION_ID, base64);
   free(base64);
 
-  k->upgr101 = UPGR101_REQUESTED;
+  k->upgr101 = UPGR101_H2;
 
   return result;
 }
@@ -2086,7 +2086,7 @@ CURLcode Curl_http2_switched(struct Curl_easy *data,
   conn->recv[FIRSTSOCKET] = http2_recv;
   conn->send[FIRSTSOCKET] = http2_send;
 
-  if(data->req.upgr101 == UPGR101_RECEIVED) {
+  if(data->req.upgr101 == UPGR101_H2) {
     /* stream 1 is opened implicitly on upgrade */
     stream->stream_id = 1;
     /* queue SETTINGS frame (again) */

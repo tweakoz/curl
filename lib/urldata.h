@@ -53,6 +53,9 @@
 #define PORT_GOPHER 70
 #define PORT_MQTT 1883
 
+#define CURLPROTO_WS     (1<<30)
+#define CURLPROTO_WSS    (1L<<31)
+
 #define DICT_MATCH "/MATCH:"
 #define DICT_MATCH2 "/M:"
 #define DICT_MATCH3 "/FIND:"
@@ -66,7 +69,8 @@
 /* Convenience defines for checking protocols or their SSL based version. Each
    protocol handler should only ever have a single CURLPROTO_ in its protocol
    field. */
-#define PROTO_FAMILY_HTTP (CURLPROTO_HTTP|CURLPROTO_HTTPS)
+#define PROTO_FAMILY_HTTP (CURLPROTO_HTTP|CURLPROTO_HTTPS|CURLPROTO_WS| \
+                           CURLPROTO_WSS)
 #define PROTO_FAMILY_FTP  (CURLPROTO_FTP|CURLPROTO_FTPS)
 #define PROTO_FAMILY_POP3 (CURLPROTO_POP3|CURLPROTO_POP3S)
 #define PROTO_FAMILY_SMB  (CURLPROTO_SMB|CURLPROTO_SMBS)
@@ -509,7 +513,6 @@ struct ConnectBits {
   BIT(tcp_fastopen); /* use TCP Fast Open */
   BIT(tls_enable_npn);  /* TLS NPN extension? */
   BIT(tls_enable_alpn); /* TLS ALPN extension? */
-  BIT(connect_only);
 #ifndef CURL_DISABLE_DOH
   BIT(doh);
 #endif
@@ -575,8 +578,9 @@ enum expect100 {
 
 enum upgrade101 {
   UPGR101_INIT,               /* default state */
-  UPGR101_REQUESTED,          /* upgrade requested */
-  UPGR101_RECEIVED,           /* response received */
+  UPGR101_WS,                 /* upgrade to WebSockets requested */
+  UPGR101_H2,                 /* upgrade to HTTP/2 requested */
+  UPGR101_RECEIVED,           /* 101 response received */
   UPGR101_WORKING             /* talking upgraded protocol */
 };
 
@@ -1124,6 +1128,7 @@ struct connectdata {
   int socks5_gssapi_enctype;
 #endif
   unsigned short localport;
+  unsigned char connect_only;
 };
 
 /* The end of connectdata. */
@@ -1816,6 +1821,8 @@ struct UserDefined {
   BIT(mail_rcpt_allowfails); /* allow RCPT TO command to fail for some
                                 recipients */
 #endif
+  unsigned char connect_only; /* make connection/request, then let
+                                 application use the socket */
   BIT(is_fread_set); /* has read callback been set to non-NULL? */
 #ifndef CURL_DISABLE_TFTP
   BIT(tftp_no_options); /* do not send TFTP options requests */
@@ -1861,7 +1868,6 @@ struct UserDefined {
   BIT(no_signal);      /* do not use any signal/alarm handler */
   BIT(tcp_nodelay);    /* whether to enable TCP_NODELAY or not */
   BIT(ignorecl);       /* ignore content length */
-  BIT(connect_only);   /* make connection, let application use the socket */
   BIT(http_te_skip);   /* pass the raw body data to the user, even when
                           transfer-encoded (chunked, compressed) */
   BIT(http_ce_skip);   /* pass the raw body data to the user, even when
@@ -1894,6 +1900,9 @@ struct UserDefined {
   BIT(doh_verifystatus);   /* DoH certificate status verification */
 #endif
   BIT(http09_allowed); /* allow HTTP/0.9 responses */
+#ifdef USE_WEBSOCKETS
+  BIT(ws_raw_mode);
+#endif
 };
 
 struct Names {

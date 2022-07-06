@@ -128,7 +128,7 @@ void Curl_dyn_reset(struct dynbuf *s)
   s->leng = 0;
 }
 
-#ifdef USE_NGTCP2
+#if defined(USE_NGTCP2) || defined(USE_WEBSOCKETS)
 /*
  * Specify the size of the tail to keep (number of bytes from the end of the
  * buffer). The rest will be dropped.
