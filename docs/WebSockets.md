@@ -37,6 +37,16 @@ The new function calls:
 
  `curl_ws_meta()` - NOT IMPLEMENTED YET
 
+## Max frame size
+
+The current implementation only supports frame sizes up to a max (64K right
+now). This is because the API delivers full frames and it then cannot manage
+the full 2^63 bytes size.
+
+If we decide we need to support (much) larger frames than 64K, we need to
+adjust the API accordingly to be able to deliver partial frames in both
+directions.
+
 ## Command line tool websockets
 
 The plan is to make curl do websockets similar to telnet/nc. That part of the
