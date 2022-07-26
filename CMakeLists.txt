@@ -1579,6 +1579,18 @@ set(VERSIONNUM              "${CURL_VERSION_NUM}")
 # Use:
 # * ENABLE_SHARED
 # * ENABLE_STATIC
+if(CURL_USE_OPENSSL)
+ set(USE_OPENSSL_BOOL 1)
+else()
+ set(USE_OPENSSL_BOOL 0)
+endif()
+if(USE_ZLIB=="ON")
+ set(USE_ZLIB_BOOL 1)
+else()
+ set(USE_ZLIB_BOOL 0)
+endif()
+  
+
 configure_file("${CURL_SOURCE_DIR}/curl-config.in"
                "${CURL_BINARY_DIR}/curl-config" @ONLY)
 install(FILES "${CURL_BINARY_DIR}/curl-config"
