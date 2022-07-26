@@ -1834,7 +1834,7 @@ static CURLcode single_transfer(struct GlobalConfig *global,
         my_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS,
                   (long)(config->connecttimeout * 1000));
 
-        if(config->doh_url)
+        if(config->doh_url && config->doh_url[0])
           my_setopt_str(curl, CURLOPT_DOH_URL, config->doh_url);
 
         if(config->cipher_list)
